@@ -9,14 +9,13 @@ function HeroModel(props) {
 }
 
 function Loader() {
-  const { progress } = useProgress();
+  const { active, progress } = useProgress();
+  if (!active) return null;
   return (
-    <Html center>
-      <div className="hero-loader">
-        <div className="spinner"></div>
-        <span>{progress.toFixed(0)}% Loading</span>
-      </div>
-    </Html>
+    <div className="hero-loader" style={{ position: 'absolute', zIndex: 10, top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+      <div className="spinner"></div>
+      <span>{progress.toFixed(0)}% Loading</span>
+    </div>
   );
 }
 
@@ -43,9 +42,10 @@ export default function HeroSection({ onOpenViewer, onScrollToConsole }) {
       </div>
 
       {/* 3D T-shirt art */}
-      <div className="hero-art">
+      <div className="hero-art" style={{ position: 'relative' }}>
+        <Loader />
         <Canvas dpr={[1, 2]} camera={{ fov: 45 }} style={{ background: 'transparent' }}>
-          <Suspense fallback={<Loader />}>
+          <Suspense fallback={null}>
             <PresentationControls
               speed={1.5}
               zoom={0.5}
