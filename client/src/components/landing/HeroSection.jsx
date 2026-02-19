@@ -1,13 +1,11 @@
-/**
- * HeroSection — Hero banner with 3D model, headline, and CTAs.
- */
+
 import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useGLTF, Stage, PresentationControls, Float } from '@react-three/drei';
 
 /* ── Inline 3D model loader ───────────── */
 function HeroModel(props) {
-  const { scene } = useGLTF('/3dmodel/tshirt.glb');
+  const { scene } = useGLTF('/3dmodel/sport.glb');
   return <primitive object={scene} {...props} />;
 }
 

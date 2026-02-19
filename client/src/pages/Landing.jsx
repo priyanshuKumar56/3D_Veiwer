@@ -1,18 +1,4 @@
-/**
- * Landing Page — Orchestrates all landing sub-components.
- *
- * ┌─────────────┐
- * │   Navbar    │
- * ├─────────────┤
- * │ HeroSection │
- * ├─────────────┤
- * │  Console    │
- * │ (ModelList  │
- * │ +UploadPanel│
- * ├─────────────┤
- * │   Footer    │
- * └─────────────┘
- */
+
 import { useCallback, useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUpload } from '../hooks/useUpload';

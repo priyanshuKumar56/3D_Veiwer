@@ -85,30 +85,34 @@ export default function SceneContent({
         <Environment preset={environmentPreset} background />
       )}
 
-      {/* Showroom platform — toggleable */}
-      {showPlatform && (
-        <ShowroomPlatform platformRadius={platformRadius} lightColor={spotColor} />
-      )}
-
-      <Suspense fallback={<SceneLoader />}>
-        {modelUrl ? (
-          <Model
-            url={modelUrl}
-            wireframe={wireframe}
-            materialColor={materialColor}
-            materialPreset={materialPreset}
-            controlsRef={controlsRef}
-            onControlsReady={handleControlsReady}
-            onSizeCalculated={(data) => {
-              onSizeCalculated(data);
-              if (onModelLoaded) onModelLoaded();
-            }}
-            onClick={handleModelClick}
-          />
-        ) : (
-          <SceneLoader />
+      {/* Group to reliably capture clicks on Model OR Platform */}
+      <group onPointerDown={handleModelClick}>
+        {/* Showroom platform — toggleable */}
+        {showPlatform && (
+          <ShowroomPlatform platformRadius={platformRadius} lightColor={spotColor} />
         )}
-      </Suspense>
+
+        <Suspense fallback={<SceneLoader />}>
+          {modelUrl ? (
+            <Model
+              url={modelUrl}
+              wireframe={wireframe}
+              materialColor={materialColor}
+              materialPreset={materialPreset}
+              controlsRef={controlsRef}
+              onControlsReady={handleControlsReady}
+              onSizeCalculated={(data) => {
+                onSizeCalculated(data);
+                if (onModelLoaded) onModelLoaded();
+              }}
+              // Removed individual onClick here as parent handles it
+              // onClick={handleModelClick}
+            />
+          ) : (
+            <SceneLoader />
+          )}
+        </Suspense>
+      </group>
 
       {/* Annotations / Hotspots */}
       <Annotations
