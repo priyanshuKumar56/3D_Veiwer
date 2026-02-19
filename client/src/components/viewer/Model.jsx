@@ -11,9 +11,11 @@ export default function Model({
   url,
   wireframe,
   materialColor,
+  materialPreset,
   onSizeCalculated,
   controlsRef,
   onControlsReady,
+  onClick,
 }) {
   const { scene } = useGLTF(url);
   const groupRef = useRef();
@@ -102,8 +104,7 @@ export default function Model({
     if (onSizeCalculated) {
       onSizeCalculated({ maxDim: TARGET_SIZE, footprint, height: scaledSize.y });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clonedScene, camera]);
+  }, [clonedScene, camera, onSizeCalculated]);
 
   /* ── Force camera for several frames ── */
   useFrame(() => {
@@ -149,7 +150,7 @@ export default function Model({
     };
   }, [url]);
 
-  /* ── Wireframe + material color ──────── */
+  /* ── Wireframe + material color + texture preset ── */
   useEffect(() => {
     clonedScene.traverse((child) => {
       if (child.isMesh && child.material) {
@@ -163,10 +164,22 @@ export default function Model({
             const orig = originalMaterials.current.get(key);
             if (orig) mat.color.copy(orig);
           }
+          // Apply material texture preset
+          if (materialPreset) {
+            if (materialPreset.metalness !== undefined) mat.metalness = materialPreset.metalness;
+            if (materialPreset.roughness !== undefined) mat.roughness = materialPreset.roughness;
+            if (materialPreset.emissiveIntensity !== undefined) mat.emissiveIntensity = materialPreset.emissiveIntensity;
+            if (materialPreset.clearcoat !== undefined && mat.clearcoat !== undefined) mat.clearcoat = materialPreset.clearcoat;
+          } else {
+            // Reset to sensible defaults when no preset
+            mat.metalness = mat.metalness ?? 0.5;
+            mat.roughness = mat.roughness ?? 0.5;
+            mat.emissiveIntensity = 0;
+          }
         });
       }
     });
-  }, [clonedScene, wireframe, materialColor]);
+  }, [clonedScene, wireframe, materialColor, materialPreset]);
 
   /* ── Entrance animation ──────────────── */
   const animProgress = useRef(0);
@@ -215,7 +228,11 @@ export default function Model({
 
   return (
     <group ref={groupRef}>
-      <primitive object={clonedScene} castShadow />
+      <primitive
+        object={clonedScene}
+        castShadow
+        onClick={onClick}
+      />
     </group>
   );
 }

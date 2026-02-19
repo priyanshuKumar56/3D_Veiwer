@@ -2,9 +2,11 @@
  * Viewer3D — Main 3D viewer component.
  * Composes the canvas, background layers, loading states, and scene content.
  *
- * Components used:
- *   SceneContent → ShowroomLights, ShowroomPlatform, Model, SceneLoader
- *   LoadingOverlay
+ * Props:
+ *   modelUrl, backgroundColor, wireframe, materialColor, lightColor,
+ *   materialPreset, showPlatform, environmentPreset,
+ *   annotations, activeAnnotation, annotationMode,
+ *   onAnnotationClick, onAnnotationDelete, onAddAnnotation
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
@@ -15,7 +17,22 @@ import LoadingOverlay from './viewer/LoadingOverlay';
 
 import '../viewer-styles.css';
 
-export default function Viewer3D({ modelUrl, backgroundColor, wireframe, materialColor, lightColor }) {
+export default function Viewer3D({
+  modelUrl,
+  backgroundColor,
+  wireframe,
+  materialColor,
+  lightColor,
+  materialPreset,
+  showPlatform = true,
+  environmentPreset = 'night',
+  annotations = [],
+  activeAnnotation,
+  annotationMode,
+  onAnnotationClick,
+  onAnnotationDelete,
+  onAddAnnotation,
+}) {
   const bgColor = backgroundColor || '#0a0a0f';
   const spotColor = lightColor || '#ffffff';
   const [platformRadius, setPlatformRadius] = useState(2);
@@ -48,42 +65,42 @@ export default function Viewer3D({ modelUrl, backgroundColor, wireframe, materia
 
   return (
     <div className="viewer-canvas" style={{ position: 'relative', overflow: 'hidden' }}>
-      {/* Layer 0: Showroom photo background */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: 'url(/images/Production-Studio-Black-Box-1.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center 75%',
-          backgroundRepeat: 'no-repeat',
-          zIndex: 0,
-        }}
-      />
-
-      {/* Layer 1: Color tint overlay */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundColor: bgColor,
-          opacity: 0.4,
-          zIndex: 1,
-          mixBlendMode: 'multiply',
-          transition: 'background-color 0.4s ease',
-        }}
-      />
-
-      {/* Layer 2: Vignette */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(ellipse at 50% 60%, transparent 30%, rgba(0,0,0,0.55) 100%)',
-          zIndex: 2,
-          pointerEvents: 'none',
-        }}
-      />
+      {/* Layer 0, 1, 2: CSS Backgrounds (only if no HDRI environment) */}
+      {environmentPreset === 'none' && (
+        <>
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: 'url(/images/Production-Studio-Black-Box-1.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center 75%',
+              backgroundRepeat: 'no-repeat',
+              zIndex: 0,
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: bgColor,
+              opacity: 0.4,
+              zIndex: 1,
+              mixBlendMode: 'multiply',
+              transition: 'background-color 0.4s ease',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'radial-gradient(ellipse at 50% 60%, transparent 30%, rgba(0,0,0,0.55) 100%)',
+              zIndex: 2,
+              pointerEvents: 'none',
+            }}
+          />
+        </>
+      )}
 
       {/* Layer 3: Three.js canvas */}
       <div style={{ position: 'relative', zIndex: 3, width: '100%', height: '100%' }}>
@@ -102,13 +119,46 @@ export default function Viewer3D({ modelUrl, backgroundColor, wireframe, materia
             modelUrl={modelUrl}
             wireframe={wireframe}
             materialColor={materialColor}
+            materialPreset={materialPreset}
             spotColor={spotColor}
             platformRadius={platformRadius}
             onSizeCalculated={handleSizeCalculated}
             onModelLoaded={handleModelLoaded}
+            showPlatform={showPlatform}
+            environmentPreset={environmentPreset}
+            annotations={annotations}
+            activeAnnotation={activeAnnotation}
+            onAnnotationClick={onAnnotationClick}
+            onAnnotationDelete={onAnnotationDelete}
+            annotationMode={annotationMode}
+            onAddAnnotation={onAddAnnotation}
           />
         </Canvas>
       </div>
+
+      {/* Annotation mode indicator */}
+      {annotationMode && (
+        <div style={{
+          position: 'absolute',
+          top: '16px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          padding: '8px 20px',
+          borderRadius: '999px',
+          background: 'rgba(59,130,246,0.15)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(59,130,246,0.3)',
+          color: '#60a5fa',
+          fontSize: '12px',
+          fontWeight: 600,
+          fontFamily: "'DM Mono', monospace",
+          letterSpacing: '0.05em',
+          zIndex: 10,
+          animation: 'pulse-glow 2s ease-in-out infinite',
+        }}>
+          📌 Click on model to add annotation
+        </div>
+      )}
 
       {/* Loading: Scene initializing */}
       {!sceneReady && (

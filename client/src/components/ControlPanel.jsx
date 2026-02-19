@@ -15,6 +15,11 @@ import {
   Sparkles,
   Sun,
   Clock,
+  Globe,
+  MapPin,
+  Circle,
+  Trash2,
+  Layers,
 } from 'lucide-react';
 import ColorPicker from './ColorPicker';
 import WireframeToggle from './WireframeToggle';
@@ -48,6 +53,19 @@ export default function ControlPanel({
   lightColor,
   onLightColorChange,
   onSelectModel,
+  /* New feature props */
+  materialPreset,
+  materialPresets = [],
+  onMaterialPresetChange,
+  showPlatform,
+  onTogglePlatform,
+  environmentPreset,
+  environmentPresets = [],
+  onEnvironmentChange,
+  annotations = [],
+  annotationMode,
+  onToggleAnnotationMode,
+  onClearAnnotations,
 }) {
   const [expandedSections, setExpandedSections] = useState({
     model: true,
@@ -55,6 +73,8 @@ export default function ControlPanel({
     environment: true,
     lighting: true,
     display: true,
+    scene: true,
+    annotations: true,
     settings: true,
   });
 
@@ -95,7 +115,23 @@ export default function ControlPanel({
       }
     };
     fetchRecent();
-  }, [modelName]); // re-fetch when a new model is uploaded
+  }, [modelName]);
+
+  /* ── Section header helper ──────────── */
+  const SectionHeader = ({ icon: Icon, label, section }) => (
+    <button
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%',
+      }}
+      onClick={() => toggleSection(section)}
+    >
+      <span className="control-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <Icon size={12} /> {label}
+      </span>
+      {expandedSections[section] ? <ChevronUp size={14} color="#6b6b80" /> : <ChevronDown size={14} color="#6b6b80" />}
+    </button>
+  );
 
   return (
     <div className="control-panel">
@@ -126,21 +162,9 @@ export default function ControlPanel({
       {/* Divider */}
       <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)' }} />
 
-      {/* Section: Model */}
+      {/* ═══ Section: Model ═══ */}
       <div className="control-section">
-        <button
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%',
-          }}
-          onClick={() => toggleSection('model')}
-        >
-          <span className="control-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <FileBox size={12} /> Model
-          </span>
-          {expandedSections.model ? <ChevronUp size={14} color="#6b6b80" /> : <ChevronDown size={14} color="#6b6b80" />}
-        </button>
-
+        <SectionHeader icon={FileBox} label="Model" section="model" />
         {expandedSections.model && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <button
@@ -191,21 +215,9 @@ export default function ControlPanel({
         )}
       </div>
 
-      {/* Section: Recent Models */}
+      {/* ═══ Section: Recent Models ═══ */}
       <div className="control-section">
-        <button
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%',
-          }}
-          onClick={() => toggleSection('recent')}
-        >
-          <span className="control-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Clock size={12} /> Recent Models
-          </span>
-          {expandedSections.recent ? <ChevronUp size={14} color="#6b6b80" /> : <ChevronDown size={14} color="#6b6b80" />}
-        </button>
-
+        <SectionHeader icon={Clock} label="Recent Models" section="recent" />
         {expandedSections.recent && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '200px', overflowY: 'auto' }}>
             {recentModels.length === 0 && (
@@ -216,23 +228,14 @@ export default function ControlPanel({
               return (
                 <button
                   key={model._id}
-                  onClick={() => {
-                    if (onSelectModel && !isActive) {
-                      onSelectModel(model);
-                    }
-                  }}
+                  onClick={() => { if (onSelectModel && !isActive) onSelectModel(model); }}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 10px',
-                    borderRadius: '8px',
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    padding: '8px 10px', borderRadius: '8px',
                     border: isActive ? '1px solid rgba(59,130,246,0.3)' : '1px solid rgba(255,255,255,0.04)',
                     background: isActive ? 'rgba(59,130,246,0.08)' : 'rgba(255,255,255,0.02)',
                     cursor: isActive ? 'default' : 'pointer',
-                    textAlign: 'left',
-                    width: '100%',
-                    transition: 'all 0.2s ease',
+                    textAlign: 'left', width: '100%', transition: 'all 0.2s ease',
                   }}
                   onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
                   onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
@@ -240,22 +243,16 @@ export default function ControlPanel({
                   <FileBox size={12} color={isActive ? '#3b82f6' : '#6b6b80'} />
                   <div style={{ overflow: 'hidden', flex: 1 }}>
                     <p style={{
-                      fontSize: '11px',
-                      fontWeight: isActive ? 600 : 500,
+                      fontSize: '11px', fontWeight: isActive ? 600 : 500,
                       color: isActive ? '#93b4f6' : '#9999a8',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>{model.originalName}</p>
                     <p style={{ fontSize: '9px', color: '#4a4a5c' }}>
                       {formatFileSize(model.fileSize)} • {formatTime(model.createdAt)}
                     </p>
                   </div>
                   {isActive && (
-                    <div style={{
-                      width: '6px', height: '6px', borderRadius: '50%',
-                      background: '#3b82f6', flexShrink: 0,
-                    }} />
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3b82f6', flexShrink: 0 }} />
                   )}
                 </button>
               );
@@ -264,55 +261,94 @@ export default function ControlPanel({
         )}
       </div>
 
-      {/* Section: Environment */}
+      {/* ═══ Section: Scene (Platform + HDRI) ═══ */}
       <div className="control-section">
-        <button
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%',
-          }}
-          onClick={() => toggleSection('environment')}
-        >
-          <span className="control-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Palette size={12} /> Environment
-          </span>
-          {expandedSections.environment ? <ChevronUp size={14} color="#6b6b80" /> : <ChevronDown size={14} color="#6b6b80" />}
-        </button>
+        <SectionHeader icon={Globe} label="Scene" section="scene" />
+        {expandedSections.scene && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {/* Platform Toggle */}
+            <div className="control-row">
+              <span className="control-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                <Circle size={13} /> Base Platform
+              </span>
+              <button
+                className={`toggle-switch ${showPlatform ? 'active' : ''}`}
+                onClick={onTogglePlatform}
+              >
+                <div className="toggle-knob" />
+              </button>
+            </div>
 
-        {expandedSections.environment && (
-          <ColorPicker
-            label="Background"
-            value={settings.backgroundColor}
-            onChange={(val) => onUpdateSetting('backgroundColor', val)}
-          />
+            {/* HDRI Environment Presets */}
+            <div className="control-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+              <span className="control-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                <Globe size={13} /> HDRI Environment
+              </span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', width: '100%' }}>
+                {environmentPresets.map((preset) => (
+                  <button
+                    key={preset.key}
+                    onClick={() => onEnvironmentChange(preset.key)}
+                    title={preset.name}
+                    style={{
+                      padding: '6px 10px',
+                      borderRadius: '8px',
+                      border: environmentPreset === preset.key
+                        ? '1px solid rgba(59,130,246,0.5)'
+                        : '1px solid rgba(255,255,255,0.08)',
+                      background: environmentPreset === preset.key
+                        ? 'rgba(59,130,246,0.12)'
+                        : 'rgba(255,255,255,0.03)',
+                      color: environmentPreset === preset.key ? '#60a5fa' : '#6b6b80',
+                      cursor: 'pointer',
+                      fontSize: '10px',
+                      fontWeight: 500,
+                      fontFamily: "'DM Mono', monospace",
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (environmentPreset !== preset.key) {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+                        e.currentTarget.style.color = '#c0c0cc';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (environmentPreset !== preset.key) {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                        e.currentTarget.style.color = '#6b6b80';
+                      }
+                    }}
+                  >
+                    <span style={{ fontSize: '12px' }}>{preset.emoji}</span>
+                    {preset.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Background Color */}
+            <ColorPicker
+              label="Background"
+              value={settings.backgroundColor}
+              onChange={(val) => onUpdateSetting('backgroundColor', val)}
+            />
+          </div>
         )}
       </div>
 
-      {/* Section: Lighting — NEW */}
+      {/* ═══ Section: Lighting ═══ */}
       <div className="control-section">
-        <button
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%',
-          }}
-          onClick={() => toggleSection('lighting')}
-        >
-          <span className="control-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Sun size={12} /> Lighting
-          </span>
-          {expandedSections.lighting ? <ChevronUp size={14} color="#6b6b80" /> : <ChevronDown size={14} color="#6b6b80" />}
-        </button>
-
+        <SectionHeader icon={Sun} label="Lighting" section="lighting" />
         {expandedSections.lighting && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {/* Light color custom picker */}
             <ColorPicker
               label="Light Color"
               value={lightColor || '#ffffff'}
               onChange={onLightColorChange}
             />
-
-            {/* Preset light themes */}
             <div className="control-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
               <span className="control-label" style={{ fontSize: '12px' }}>Quick Presets</span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', width: '100%' }}>
@@ -322,22 +358,14 @@ export default function ControlPanel({
                     onClick={() => onLightColorChange(preset.color)}
                     title={preset.name}
                     style={{
-                      width: '30px',
-                      height: '30px',
-                      borderRadius: '8px',
-                      border: lightColor === preset.color
-                        ? '2px solid #ffffff'
-                        : '2px solid rgba(255,255,255,0.08)',
+                      width: '30px', height: '30px', borderRadius: '8px',
+                      border: lightColor === preset.color ? '2px solid #ffffff' : '2px solid rgba(255,255,255,0.08)',
                       background: preset.color,
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '12px',
-                      boxShadow: lightColor === preset.color
-                        ? `0 0 12px ${preset.color}40`
-                        : 'none',
+                      boxShadow: lightColor === preset.color ? `0 0 12px ${preset.color}40` : 'none',
                     }}
                     onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.12)'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
@@ -349,21 +377,9 @@ export default function ControlPanel({
         )}
       </div>
 
-      {/* Section: Display */}
+      {/* ═══ Section: Display (wireframe, materials, textures) ═══ */}
       <div className="control-section">
-        <button
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%',
-          }}
-          onClick={() => toggleSection('display')}
-        >
-          <span className="control-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Eye size={12} /> Display
-          </span>
-          {expandedSections.display ? <ChevronUp size={14} color="#6b6b80" /> : <ChevronDown size={14} color="#6b6b80" />}
-        </button>
-
+        <SectionHeader icon={Eye} label="Display" section="display" />
         {expandedSections.display && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <WireframeToggle
@@ -371,31 +387,189 @@ export default function ControlPanel({
               onChange={(val) => onUpdateSetting('wireframe', val)}
             />
 
+            {/* Material Color */}
             <div className="control-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
               <span className="control-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Sparkles size={13} /> Material Color
               </span>
               <MaterialChanger activeColor={materialColor} onChange={onMaterialChange} />
             </div>
+
+            {/* Material Texture Preset */}
+            <div className="control-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+              <span className="control-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Layers size={13} /> Material Texture
+              </span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', width: '100%' }}>
+                {materialPresets.map((preset) => {
+                  const isActive = materialPreset === preset.key
+                    || (materialPreset === null && preset.key === null);
+                  return (
+                    <button
+                      key={preset.name}
+                      onClick={() => onMaterialPresetChange(preset.key)}
+                      title={preset.name}
+                      style={{
+                        padding: '5px 10px',
+                        borderRadius: '8px',
+                        border: isActive
+                          ? '1px solid rgba(139,92,246,0.5)'
+                          : '1px solid rgba(255,255,255,0.08)',
+                        background: isActive
+                          ? 'rgba(139,92,246,0.12)'
+                          : 'rgba(255,255,255,0.03)',
+                        color: isActive ? '#a78bfa' : '#6b6b80',
+                        cursor: 'pointer',
+                        fontSize: '10px',
+                        fontWeight: 500,
+                        fontFamily: "'DM Mono', monospace",
+                        transition: 'all 0.2s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActive) {
+                          e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+                          e.currentTarget.style.color = '#c0c0cc';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive) {
+                          e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                          e.currentTarget.style.color = '#6b6b80';
+                        }
+                      }}
+                    >
+                      {preset.emoji && <span style={{ fontSize: '12px' }}>{preset.emoji}</span>}
+                      {preset.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <p style={{ fontSize: '10px', color: '#4a4a5c' }}>
+                {materialPreset
+                  ? `Active: ${materialPresets.find(p => p.key === materialPreset)?.name || 'Custom'}`
+                  : 'Using original textures'}
+              </p>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Section: Settings */}
+      {/* ═══ Section: Annotations ═══ */}
       <div className="control-section">
-        <button
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '100%',
-          }}
-          onClick={() => toggleSection('settings')}
-        >
-          <span className="control-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Settings size={12} /> Settings
-          </span>
-          {expandedSections.settings ? <ChevronUp size={14} color="#6b6b80" /> : <ChevronDown size={14} color="#6b6b80" />}
-        </button>
+        <SectionHeader icon={MapPin} label="Annotations" section="annotations" />
+        {expandedSections.annotations && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {/* Add / Toggle annotation mode */}
+            <button
+              onClick={onToggleAnnotationMode}
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                border: annotationMode
+                  ? '1px solid rgba(59,130,246,0.4)'
+                  : '1px solid rgba(255,255,255,0.08)',
+                background: annotationMode
+                  ? 'rgba(59,130,246,0.12)'
+                  : 'rgba(255,255,255,0.03)',
+                color: annotationMode ? '#60a5fa' : '#c0c0cc',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                fontFamily: "'DM Mono', monospace",
+              }}
+            >
+              <MapPin size={14} />
+              {annotationMode ? 'Cancel Placement' : 'Add Annotation'}
+            </button>
 
+            {/* Annotation list */}
+            {annotations.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '4px 0',
+                }}>
+                  <p style={{ fontSize: '10px', color: '#6b6b80', fontWeight: 500 }}>
+                    {annotations.length} annotation{annotations.length > 1 ? 's' : ''}
+                  </p>
+                  <button
+                    onClick={onClearAnnotations}
+                    style={{
+                      background: 'rgba(239,68,68,0.08)',
+                      border: '1px solid rgba(239,68,68,0.2)',
+                      color: '#ef4444',
+                      borderRadius: '6px',
+                      padding: '3px 8px',
+                      fontSize: '9px',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontFamily: "'DM Mono', monospace",
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <Trash2 size={10} /> Clear All
+                  </button>
+                </div>
+
+                {annotations.map((ann) => (
+                  <div
+                    key={ann.id}
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: '8px',
+                      background: 'rgba(255,255,255,0.02)',
+                      border: '1px solid rgba(255,255,255,0.04)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <div style={{
+                      width: '20px', height: '20px', borderRadius: '50%',
+                      background: ann.color, flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '10px', fontWeight: 700, color: '#fff',
+                    }}>
+                      {ann.index + 1}
+                    </div>
+                    <div style={{ flex: 1, overflow: 'hidden' }}>
+                      <p style={{
+                        fontSize: '11px', fontWeight: 600, color: '#c0c0cc',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>{ann.title}</p>
+                      <p style={{ fontSize: '9px', color: '#4a4a5c' }}>
+                        ({ann.position[0]}, {ann.position[1]}, {ann.position[2]})
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {annotations.length === 0 && !annotationMode && (
+              <p style={{ fontSize: '10px', color: '#4a4a5c', fontStyle: 'italic', padding: '4px 0' }}>
+                Add annotations to mark points of interest on the model
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ═══ Section: Settings ═══ */}
+      <div className="control-section">
+        <SectionHeader icon={Settings} label="Settings" section="settings" />
         {expandedSections.settings && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div className="control-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '6px' }}>

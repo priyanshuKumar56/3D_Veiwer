@@ -7,6 +7,32 @@ import Toast from '../components/Toast';
 import { useSettings } from '../hooks/useSettings';
 import { useUpload } from '../hooks/useUpload';
 
+/* ── Material texture presets ──────────── */
+const MATERIAL_PRESETS = [
+  { name: 'Default', key: null },
+  { name: 'Chrome', key: { metalness: 1, roughness: 0.05, emissiveIntensity: 0 }, emoji: '🪞' },
+  { name: 'Brushed Metal', key: { metalness: 0.9, roughness: 0.35, emissiveIntensity: 0 }, emoji: '🔩' },
+  { name: 'Plastic', key: { metalness: 0, roughness: 0.4, emissiveIntensity: 0 }, emoji: '🧊' },
+  { name: 'Glass', key: { metalness: 0.1, roughness: 0, emissiveIntensity: 0.1 }, emoji: '💎' },
+  { name: 'Matte', key: { metalness: 0, roughness: 1, emissiveIntensity: 0 }, emoji: '🧱' },
+  { name: 'Ceramic', key: { metalness: 0.2, roughness: 0.15, emissiveIntensity: 0 }, emoji: '🏺' },
+  { name: 'Rubber', key: { metalness: 0, roughness: 0.85, emissiveIntensity: 0 }, emoji: '🛞' },
+];
+
+/* ── HDRI environment presets ──────────── */
+const ENVIRONMENT_PRESETS = [
+  { name: 'None', key: 'none', emoji: '⬛' },
+  { name: 'Night', key: 'night', emoji: '🌙' },
+  { name: 'Studio', key: 'studio', emoji: '💡' },
+  { name: 'City', key: 'city', emoji: '🏙️' },
+  { name: 'Sunset', key: 'sunset', emoji: '🌅' },
+  { name: 'Dawn', key: 'dawn', emoji: '🌄' },
+  { name: 'Forest', key: 'forest', emoji: '🌲' },
+];
+
+/* ── Annotation colors ─────────────────── */
+const ANNOTATION_COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+
 export default function ViewerPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -21,6 +47,14 @@ export default function ViewerPage() {
   const [materialColor, setMaterialColor] = useState(null);
   const [lightColor, setLightColor] = useState(settings.lightColor || '#ffffff');
   const [toasts, setToasts] = useState([]);
+
+  /* ── New feature state ─────────────── */
+  const [materialPreset, setMaterialPreset] = useState(null);
+  const [showPlatform, setShowPlatform] = useState(true);
+  const [environmentPreset, setEnvironmentPreset] = useState('night');
+  const [annotations, setAnnotations] = useState([]);
+  const [activeAnnotation, setActiveAnnotation] = useState(null);
+  const [annotationMode, setAnnotationMode] = useState(false);
 
   // Apply loaded settings
   useEffect(() => {
@@ -87,6 +121,37 @@ export default function ViewerPage() {
     addToast('success', `Switched to ${model.originalName}`);
   }, [updateSettings, addToast]);
 
+  /* ── Annotation handlers ──────────── */
+  const handleAddAnnotation = useCallback((position) => {
+    const colorIndex = annotations.length % ANNOTATION_COLORS.length;
+    const newAnnotation = {
+      id: Date.now(),
+      index: annotations.length,
+      position,
+      title: `Point ${annotations.length + 1}`,
+      description: 'Annotation added',
+      color: ANNOTATION_COLORS[colorIndex],
+    };
+    setAnnotations(prev => [...prev, newAnnotation]);
+    setActiveAnnotation(newAnnotation.id);
+    setAnnotationMode(false);
+    addToast('success', `Annotation #${annotations.length + 1} added`);
+  }, [annotations, addToast]);
+
+  const handleAnnotationClick = useCallback((id) => {
+    setActiveAnnotation(prev => prev === id ? null : id);
+  }, []);
+
+  const handleAnnotationDelete = useCallback((id) => {
+    setAnnotations(prev => {
+      const filtered = prev.filter(a => a.id !== id);
+      // Re-index
+      return filtered.map((a, i) => ({ ...a, index: i, title: `Point ${i + 1}` }));
+    });
+    setActiveAnnotation(null);
+    addToast('info', 'Annotation removed');
+  }, [addToast]);
+
   // Show upload error as toast
   useEffect(() => {
     if (uploadError) {
@@ -148,6 +213,15 @@ export default function ViewerPage() {
         wireframe={settings.wireframe}
         materialColor={materialColor}
         lightColor={lightColor}
+        materialPreset={materialPreset}
+        showPlatform={showPlatform}
+        environmentPreset={environmentPreset}
+        annotations={annotations}
+        activeAnnotation={activeAnnotation}
+        annotationMode={annotationMode}
+        onAnnotationClick={handleAnnotationClick}
+        onAnnotationDelete={handleAnnotationDelete}
+        onAddAnnotation={handleAddAnnotation}
       />
 
       {/* Control Panel Sidebar */}
@@ -166,6 +240,19 @@ export default function ViewerPage() {
         lightColor={lightColor}
         onLightColorChange={handleLightColorChange}
         onSelectModel={handleSelectModel}
+        /* New feature props */
+        materialPreset={materialPreset}
+        materialPresets={MATERIAL_PRESETS}
+        onMaterialPresetChange={setMaterialPreset}
+        showPlatform={showPlatform}
+        onTogglePlatform={() => setShowPlatform(prev => !prev)}
+        environmentPreset={environmentPreset}
+        environmentPresets={ENVIRONMENT_PRESETS}
+        onEnvironmentChange={setEnvironmentPreset}
+        annotations={annotations}
+        annotationMode={annotationMode}
+        onToggleAnnotationMode={() => setAnnotationMode(prev => !prev)}
+        onClearAnnotations={() => { setAnnotations([]); setActiveAnnotation(null); }}
       />
 
       {/* Toast notifications */}
