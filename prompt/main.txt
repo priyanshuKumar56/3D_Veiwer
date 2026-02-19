@@ -1,0 +1,238 @@
+use my exting setupp and build into that   3D Product Viewer — Complete Feature & System Breakdown
+Let me walk you through everything, exactly how it should look, feel, and work — from the moment a user opens the app to every feature they interact with.
+
+What You're Building (Big Picture)
+Think of it as a mini Sketchfab clone — a web app where someone can upload a 3D model, spin it around in the browser, customize how it looks, and have those settings saved automatically. The reference sites (arnxt.com and quleep.in) are AR/3D product visualization platforms, so the vibe is clean, modern, professional — like a tool a product designer or e-commerce brand would use.
+
+How the App Looks & Flows (Complete UI System)
+Page 1 — Landing / Onboarding Screen
+When a user first opens the app, they should NOT be dropped directly into a blank viewer. Instead there's a clean landing experience:
+What they see:
+
+A dark-themed page (dark backgrounds work best for 3D viewers — the model pops)
+A big headline like "Visualize Your Product in 3D"
+A short subline explaining what the app does in one sentence
+A large drag-and-drop upload zone in the center — a dashed border box that says "Drop your GLB file here or click to browse"
+Below it, a small note saying supported formats: .glb, .gltf
+Optionally a "Load Sample Model" button so users can try it without uploading anything
+
+Feel: Clean, minimal, inviting. Like Figma's welcome screen or Dropbox's upload page.
+What happens: User drops a file → loading spinner appears → they get taken to the Viewer Screen.
+
+Page 2 — The Main Viewer Screen (Core of the App)
+This is the biggest, most important screen. It's split into two zones:
+Zone A — 3D Canvas (Left / Center, ~75% of screen)
+This is a full WebGL canvas powered by Three.js. The 3D model renders here. It fills most of the screen. The background of this canvas changes based on the color picker.
+Zone B — Control Panel (Right sidebar, ~25% of screen)
+A vertical panel on the right side with all controls. Dark card, slightly lighter than the canvas background.
+
+Every Feature Explained in Detail
+Feature 1 — 3D Model Viewer (Mandatory, 20% weight)
+What it does: Renders the uploaded GLB/GLTF 3D model inside a WebGL canvas using Three.js.
+How it looks: The model appears centered on the canvas, properly sized and lit. It just sits there looking good — like a product on a studio shelf.
+Controls the user gets:
+
+Rotate — Click and drag on the canvas to spin the model around any axis. This is called OrbitControls in Three.js. The model rotates smoothly following the mouse.
+Zoom — Scroll wheel zooms in and out. On mobile it's pinch-to-zoom.
+Pan — Right-click drag (or two-finger drag on mobile) moves the camera sideways/up-down without rotating. Useful when zoomed in.
+
+Lighting setup (behind the scenes but visible):
+
+Ambient Light — Fills the whole scene with soft base light so no part of the model is pitch black. Think of it like the general room lighting.
+Directional Light — Acts like a sun/spotlight coming from one direction, creating highlights and shadows that make the model look 3D and real, not flat.
+
+Why this matters for evaluation: The interviewer wants to see you understand 3D space — camera positioning, lighting, model scaling, and smooth controls. This is 20% of your score.
+
+Feature 2 — Upload 3D Model (Mandatory)
+What it does: Lets the user pick a .glb or .gltf file from their computer and load it into the viewer.
+Two parts:
+
+Frontend upload UI — A button or drag-drop zone in the control panel (or on the landing page). When clicked, it opens the file picker. After selection, the file is sent to the backend API.
+Backend upload API — Your Node/Express server receives the file, saves it to a local /uploads folder on the server, and sends back a URL like http://yourserver.com/uploads/model123.glb. The frontend then loads this URL into Three.js.
+
+How it looks in the UI:
+
+A button labeled "Upload Model" with a file icon
+After upload, a small success message or the model just appears
+Maybe a tiny filename label like "sneaker.glb — loaded"
+If something goes wrong, a friendly error toast (red notification at top)
+
+Edge cases to handle:
+
+File too large? Show an error.
+Wrong format? Reject it before sending.
+Loading a new model replaces the old one cleanly.
+
+
+Feature 3 — Background Color Picker (Mandatory)
+What it does: Changes the background color of the 3D canvas in real time.
+How it looks: A row in the control panel labeled "Background" with a color swatch next to it. Clicking the swatch opens a color picker popup (can use the native HTML <input type="color"> or a library like react-colorful for something nicer).
+Behavior:
+
+As soon as the user picks a color, the canvas background updates instantly — no page refresh, no button click needed.
+Default color on load is something nice — dark charcoal #1a1a2e or pure black.
+This setting gets saved to the backend (explained in Feature 5).
+
+Why it matters: It's part of "viewer settings" the backend stores. Simple but important for the full-stack loop.
+
+Feature 4 — Wireframe Mode Toggle (Mandatory)
+What it does: Switches the 3D model's appearance between solid (normal) and wireframe (shows only the edges/skeleton of the model as lines).
+How it looks:
+
+A toggle switch in the control panel labeled "Wireframe Mode"
+OFF: Model looks normal with colors/textures
+ON: Model becomes a mesh of lines, you can see through it, shows the geometry structure
+
+Behavior: Instantly switches on click. No reload. Looks really cool on complex models — shows your technical chops.
+How it works under the hood: You traverse all mesh objects in the Three.js scene and set material.wireframe = true/false. This setting also gets saved to the backend.
+
+Feature 5 — Save Viewer Settings to Backend (Mandatory)
+What it does: Every time the user changes background color or toggles wireframe, those preferences get saved to MongoDB via your API.
+What gets saved:
+
+Background color (hex code like #1a1a2e)
+Wireframe state (true or false)
+Timestamp (when it was saved)
+
+How the save is triggered: Either automatically (debounced — saves 1 second after user stops changing things) or with a "Save Settings" button. Auto-save feels more polished.
+How it looks in UI: A small "Settings saved ✓" confirmation message briefly appears, then fades out. OR a persistent "Last saved: 2 min ago" text at the bottom of the panel.
+
+Feature 6 — Fetch/Load Saved Settings (Mandatory)
+What it does: When the app loads, it calls the backend and gets back the last saved settings, then applies them automatically.
+User experience: User comes back to the app next time → their background color is restored, wireframe mode is set to what it was before. Feels like the app remembers them.
+How it looks: Nothing visible — it just works. The canvas background is already set to their saved color when the viewer loads. No jarring default-then-change flash.
+
+The Control Panel — Complete Layout
+Here's exactly what the right sidebar contains, top to bottom:
+Header: App logo or name, maybe a small tagline.
+Section 1 — Model
+
+Upload button (with file icon)
+Current filename display
+Maybe a small thumbnail or polygon count
+
+Section 2 — Environment
+
+Background color picker with label
+(Bonus) HDRI environment dropdown
+
+Section 3 — Display
+
+Wireframe toggle switch
+(Bonus) Material/texture changer
+
+Section 4 — Settings
+
+Save button or auto-save status
+Last saved timestamp
+
+Footer:
+
+App version or branding
+
+
+Bonus Features (5% but impressive)
+Bonus 1 — Material / Texture Change
+A dropdown or set of swatches in the panel that lets users apply a different color or texture to the model's surface. For example, change a shoe from red to blue. Uses Three.js material.color.set() or swapping texture maps.
+Looks like: A row of colored circles the user can click, like color options on an e-commerce product page.
+Bonus 2 — HDRI Environment
+Instead of a flat background color, load an HDRI image (a 360° photo of a room, studio, or outdoor scene) that wraps around the model and reflects onto its surface. Makes metallic/shiny models look stunning and photorealistic.
+Looks like: A dropdown in the panel — "Environment: Studio / Sunset / Warehouse / None" — and the background + reflections change.
+Bonus 3 — Hotspots / Annotations
+Clickable markers that float on specific points of the 3D model. When clicked, they show a tooltip with info like "This is the heel cushion — Air Zoom technology". Like the annotation system on Sketchfab.
+Looks like: Small pulsing dot icons on the model. Click → popup card with title and description appears.
+
+Backend API System — All 3 Endpoints
+API 1: POST /api/upload
+
+Accepts multipart form data with the GLB file
+Validates format and size
+Saves to /uploads/ folder
+Returns: { success: true, url: "/uploads/filename.glb", id: "abc123" }
+
+API 2: POST /api/settings
+
+Accepts JSON body: { backgroundColor: "#1a1a2e", wireframe: false }
+Saves to MongoDB with timestamp
+Returns: { success: true, savedAt: "2025-02-18T10:00:00Z" }
+
+API 3: GET /api/settings
+
+No input needed
+Fetches latest saved settings from MongoDB
+Returns: { backgroundColor: "#1a1a2e", wireframe: false, savedAt: "..." }
+
+
+Database Schema (MongoDB)
+Collection: viewerSettings
+{
+  _id: ObjectId,
+  backgroundColor: String,   // "#1a1a2e"
+  wireframe: Boolean,         // false
+  modelUrl: String,           // "/uploads/shoe.glb"
+  createdAt: Date,
+  updatedAt: Date
+}
+Collection: uploads
+{
+  _id: ObjectId,
+  originalName: String,       // "sneaker.glb"
+  storedName: String,         // "uuid-sneaker.glb"
+  filePath: String,           // "/uploads/uuid-sneaker.glb"
+  fileSize: Number,
+  uploadedAt: Date
+}
+
+Folder Structure
+project/
+├── client/                  (React frontend)
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Viewer3D.jsx       (Three.js canvas)
+│   │   │   ├── ControlPanel.jsx   (Right sidebar)
+│   │   │   ├── UploadZone.jsx     (File upload UI)
+│   │   │   ├── ColorPicker.jsx
+│   │   │   └── WireframeToggle.jsx
+│   │   ├── hooks/
+│   │   │   ├── useThreeScene.js   (Three.js setup logic)
+│   │   │   └── useSettings.js     (API calls for settings)
+│   │   ├── pages/
+│   │   │   ├── Landing.jsx
+│   │   │   └── Viewer.jsx
+│   │   └── App.jsx
+│
+├── server/                  (Node + Express backend)
+│   ├── routes/
+│   │   ├── upload.js
+│   │   └── settings.js
+│   ├── models/
+│   │   ├── Settings.js
+│   │   └── Upload.js
+│   ├── uploads/             (stored GLB files)
+│   └── index.js
+│
+└── docs/
+    └── technical-doc.pdf
+
+The Full User Journey (Start to Finish)
+
+User opens the app → sees the landing/upload screen
+They drag a GLB file onto the upload zone
+File uploads to backend → URL returned
+App transitions to the viewer screen — model appears in center, spinning gently (optional auto-rotate)
+User drags to rotate → zooms → pans → explores the model
+User clicks the background color picker → changes it to a light grey
+Canvas background updates instantly
+Settings auto-save → "Saved ✓" flash appears
+User toggles wireframe ON → model turns into a wire mesh
+Settings save again
+User closes the tab, comes back tomorrow
+App fetches saved settings → loads with the same grey background and wireframe still on
+
+
+Visual Design Direction
+Theme: Dark, cinematic, professional. Think Three.js/Spline aesthetic.
+Colors: Very dark background (#0a0a0f), white model, electric blue or orange accents for UI elements.
+Typography: Clean, modern, slightly technical — something like Sora, Space Grotesk, or similar.
+Animations: Smooth model load animation (fade in + slight scale up). Panel elements slide in on load. Toggles have smooth transitions.
+Inspiration: Spline.design viewer, Sketchfab embed player, Apple AR Quick Look.
