@@ -41,9 +41,31 @@ export default function SceneContent({
     setControlsEnabled(true);
   }, []);
 
+  // Cursor effect for annotation mode
+  useEffect(() => {
+    if (annotationMode) {
+      document.body.style.cursor = 'crosshair';
+    } else {
+      document.body.style.cursor = 'auto';
+    }
+    return () => {
+      document.body.style.cursor = 'auto';
+    };
+  }, [annotationMode]);
+
+  // Force controls ensuring they are disabled in annotation mode
+  useEffect(() => {
+    if (controlsRef.current) {
+      controlsRef.current.enabled = controlsEnabled && !annotationMode;
+      // Also force stop auto-rotation if active
+      if (annotationMode) controlsRef.current.autoRotate = false;
+    }
+  }, [controlsEnabled, annotationMode]);
+
   const handleModelClick = useCallback((e) => {
     // Only handle click if in annotation mode
     if (annotationMode && onAddAnnotation) {
+      console.log('Model clicked at:', e.point);
       e.stopPropagation();
       const point = [
         parseFloat(e.point.x.toFixed(3)),
@@ -94,12 +116,13 @@ export default function SceneContent({
         activeAnnotation={activeAnnotation}
         onAnnotationClick={onAnnotationClick}
         onAnnotationDelete={onAnnotationDelete}
+        annotationMode={annotationMode}
       />
 
       <OrbitControls
         ref={controlsRef}
         makeDefault
-        enabled={controlsEnabled}
+        enabled={controlsEnabled && !annotationMode}
         enableDamping
         dampingFactor={0.06}
         rotateSpeed={0.6}

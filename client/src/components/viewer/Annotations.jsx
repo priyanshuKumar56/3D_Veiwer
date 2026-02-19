@@ -8,7 +8,7 @@ import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 
 /* ── Single annotation marker ────────── */
-function AnnotationMarker({ annotation, isActive, onClick, onDelete }) {
+function AnnotationMarker({ annotation, isActive, onClick, onDelete, annotationMode }) {
   const meshRef = useRef();
   const [hovered, setHovered] = useState(false);
 
@@ -20,11 +20,18 @@ function AnnotationMarker({ annotation, isActive, onClick, onDelete }) {
     }
   });
 
+  // Helper to reset cursor correctly
+  const handlePointerOut = () => {
+    setHovered(false);
+    // Revert to crosshair if in mode, else auto
+    document.body.style.cursor = annotationMode ? 'crosshair' : 'auto';
+  };
+
   return (
     <group ref={meshRef} position={annotation.position}>
       {/* Outer pulse ring */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.06, 0.08, 32]} />
+        <ringGeometry args={[0.08, 0.1, 32]} />
         <meshBasicMaterial
           color={annotation.color || '#3b82f6'}
           transparent
@@ -33,14 +40,21 @@ function AnnotationMarker({ annotation, isActive, onClick, onDelete }) {
         />
       </mesh>
 
-      {/* Main sphere */}
+      {/* Main sphere - interactions */}
       <mesh
-        onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = 'pointer'; }}
-        onPointerOut={() => { setHovered(false); document.body.style.cursor = 'auto'; }}
-        onClick={(e) => { e.stopPropagation(); onClick(annotation.id); }}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          setHovered(true);
+          document.body.style.cursor = 'pointer';
+        }}
+        onPointerOut={handlePointerOut}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick(annotation.id);
+        }}
         scale={hovered ? 1.3 : 1}
       >
-        <sphereGeometry args={[0.04, 16, 16]} />
+        <sphereGeometry args={[0.06, 16, 16]} />
         <meshStandardMaterial
           color={annotation.color || '#3b82f6'}
           emissive={annotation.color || '#3b82f6'}
@@ -154,6 +168,7 @@ export default function Annotations({
   activeAnnotation,
   onAnnotationClick,
   onAnnotationDelete,
+  annotationMode,
 }) {
   return (
     <group>
@@ -165,6 +180,7 @@ export default function Annotations({
           isActive={activeAnnotation === ann.id}
           onClick={onAnnotationClick}
           onDelete={onAnnotationDelete}
+          annotationMode={annotationMode}
         />
       ))}
     </group>

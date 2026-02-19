@@ -15,7 +15,7 @@ export default function Model({
   onSizeCalculated,
   controlsRef,
   onControlsReady,
-  onClick,
+  onClick, // We'll use this prop for onPointerDown too
 }) {
   const { scene } = useGLTF(url);
   const groupRef = useRef();
@@ -125,8 +125,7 @@ export default function Model({
     setupFramesLeft.current -= 1;
 
     if (setupFramesLeft.current === 0) {
-      ctrl.enableDamping = true;
-      ctrl.autoRotate = true;
+      if (ctrl) ctrl.enableDamping = true;
       setupData.current = null;
       if (onControlsReady) onControlsReady();
     }
@@ -154,6 +153,9 @@ export default function Model({
   useEffect(() => {
     clonedScene.traverse((child) => {
       if (child.isMesh && child.material) {
+        // Robustness: ensure meshes receive events if primitive fails
+        child.userData.onClick = onClick;
+
         const mats = Array.isArray(child.material) ? child.material : [child.material];
         mats.forEach((mat, i) => {
           mat.wireframe = wireframe;
@@ -179,7 +181,7 @@ export default function Model({
         });
       }
     });
-  }, [clonedScene, wireframe, materialColor, materialPreset]);
+  }, [clonedScene, wireframe, materialColor, materialPreset, onClick]);
 
   /* ── Entrance animation ──────────────── */
   const animProgress = useRef(0);
@@ -231,7 +233,7 @@ export default function Model({
       <primitive
         object={clonedScene}
         castShadow
-        onClick={onClick}
+        onPointerDown={onClick} 
       />
     </group>
   );

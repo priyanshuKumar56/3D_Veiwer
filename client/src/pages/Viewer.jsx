@@ -51,7 +51,7 @@ export default function ViewerPage() {
   /* ── New feature state ─────────────── */
   const [materialPreset, setMaterialPreset] = useState(null);
   const [showPlatform, setShowPlatform] = useState(true);
-  const [environmentPreset, setEnvironmentPreset] = useState('night');
+  const [environmentPreset, setEnvironmentPreset] = useState('none');
   const [annotations, setAnnotations] = useState([]);
   const [activeAnnotation, setActiveAnnotation] = useState(null);
   const [annotationMode, setAnnotationMode] = useState(false);
@@ -251,7 +251,12 @@ export default function ViewerPage() {
         onEnvironmentChange={setEnvironmentPreset}
         annotations={annotations}
         annotationMode={annotationMode}
-        onToggleAnnotationMode={() => setAnnotationMode(prev => !prev)}
+        onToggleAnnotationMode={() => {
+          setAnnotationMode(prev => {
+            if (!prev) addToast('info', 'Mode Active: Click on model to place pin');
+            return !prev;
+          });
+        }}
         onClearAnnotations={() => { setAnnotations([]); setActiveAnnotation(null); }}
       />
 
