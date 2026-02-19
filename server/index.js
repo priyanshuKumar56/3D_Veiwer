@@ -22,7 +22,7 @@ if (!fs.existsSync(uploadsDir)) {
 // Accept CLIENT_URL as a comma-separated list for flexibility
 const allowedOrigins = (process.env.CLIENT_URL || 'https://3-d-veiwer-hy6m.vercel.app')
   .split(',')
-  .map(s => s.trim());
+  .map(s => s.trim().replace(/\/$/, ''));
 
 app.use(cors({
   origin: (origin, callback) => {
