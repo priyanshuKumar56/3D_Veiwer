@@ -95,7 +95,7 @@ export default function Landing() {
       <div className="section-divider" />
 
       <ConsoleSection
-        recentModels={recentModels}
+        recentModels={recentModels.slice(0, 4)}
         busy={busy}
         error={error}
         fileInputRef={fileInputRef}

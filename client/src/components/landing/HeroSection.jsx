@@ -1,12 +1,23 @@
-
 import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { useGLTF, Stage, PresentationControls, Float } from '@react-three/drei';
+import { useGLTF, Stage, PresentationControls, Float, Html, useProgress } from '@react-three/drei';
 
 /* ── Inline 3D model loader ───────────── */
 function HeroModel(props) {
   const { scene } = useGLTF('/3dmodel/sport.glb');
   return <primitive object={scene} {...props} />;
+}
+
+function Loader() {
+  const { progress } = useProgress();
+  return (
+    <Html center>
+      <div className="hero-loader">
+        <div className="spinner"></div>
+        <span>{progress.toFixed(0)}% Loading</span>
+      </div>
+    </Html>
+  );
 }
 
 export default function HeroSection({ onOpenViewer, onScrollToConsole }) {
@@ -34,7 +45,7 @@ export default function HeroSection({ onOpenViewer, onScrollToConsole }) {
       {/* 3D T-shirt art */}
       <div className="hero-art">
         <Canvas dpr={[1, 2]} camera={{ fov: 45 }} style={{ background: 'transparent' }}>
-          <Suspense fallback={null}>
+          <Suspense fallback={<Loader />}>
             <PresentationControls
               speed={1.5}
               zoom={0.5}

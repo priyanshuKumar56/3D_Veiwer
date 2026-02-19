@@ -1,0 +1,38 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad_main" x1="12" y1="10" x2="52" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0.1" stop-color="#60a5fa" />
+      <stop offset="0.9" stop-color="#a78bfa" />
+    </linearGradient>
+    <linearGradient id="grad_dark" x1="32" y1="30" x2="32" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3b82f6" />
+      <stop offset="1" stop-color="#1d4ed8" />
+    </linearGradient>
+    <linearGradient id="grad_light" x1="12" y1="20" x2="52" y2="20" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#93c5fd" />
+      <stop offset="1" stop-color="#c4b5fd" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Glow Effect Background -->
+  <path d="M32 8L56 20L32 32L8 20L32 8Z" fill="#3b82f6" fill-opacity="0.3" filter="url(#glow)" />
+  <path d="M8 20L32 32V56L8 44V20Z" fill="#3b82f6" fill-opacity="0.3" filter="url(#glow)" />
+  <path d="M32 32L56 20V44L32 56V32Z" fill="#8b5cf6" fill-opacity="0.3" filter="url(#glow)" />
+
+  <!-- Cube Faces -->
+  <!-- Left Face -->
+  <path d="M8 20L32 32V56L8 44V20Z" fill="url(#grad_dark)" fill-opacity="0.9" />
+  
+  <!-- Right Face -->
+  <path d="M32 32L56 20V44L32 56V32Z" fill="#7c3aed" fill-opacity="0.9" />
+
+  <!-- Top Face -->
+  <path d="M32 8L56 20L32 32L8 20L32 8Z" fill="url(#grad_light)" />
+
+  <!-- Highlight Edges -->
+  <path d="M32 8L56 20L32 32M32 32L8 20L32 8M32 32V56" stroke="white" stroke-opacity="0.2" stroke-width="1" />
+</svg>
