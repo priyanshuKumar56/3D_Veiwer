@@ -10,7 +10,7 @@ const settingsRoutes = require('./routes/settings');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/3dviewer';
+const MONGO_URI = process.env.MONGO_URI || '';
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -20,7 +20,7 @@ if (!fs.existsSync(uploadsDir)) {
 
 // ── CORS ──────────────────────────────────────
 // Accept CLIENT_URL as a comma-separated list for flexibility
-const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
+const allowedOrigins = (process.env.CLIENT_URL || 'https://3-d-veiwer-hy6m.vercel.app/')
   .split(',')
   .map(s => s.trim());
 
