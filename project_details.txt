@@ -1,0 +1,67 @@
+PROJECT DETAILS: 3D MODEL VIEWER PRO
+=======================================
+
+1. PROJECT OVERVIEW
+-------------------
+A full-stack web application designed for high-performance 3D model visualization. It allows users to upload their own GLB/GLTF assets and manipulate them in a real-time, aesthetically pleasing environment.
+
+2. DETAILED FUNCTIONALITY
+-------------------------
+*   3D Model Support: Specifically optimized for .glb and .gltf formats.
+*   File Upload System: Multer-based backend storage with automatic duplicate detection (replaces old file if name matches) and automatic disk cleanup for missing DB records.
+*   Model Normalization: Automatically centers models and scales them to a standard size upon loading, ensuring any model (regardless of origin) looks good in the viewport.
+*   Interactive Controls: Full OrbitControls (Rotate, Zoom, Pan) with smooth damping animations.
+*   Material Editor:
+    - Real-time color HEX changes.
+    - Wireframe toggle mode.
+    - 8 Material Presets: Chrome, Brushed Metal, Plastic, Glass, Matte, Ceramic, Rubber, and Default.
+*   Lighting & Environment:
+    - Custom light color control.
+    - 7 HDRI Environment Presets: Studio, Night, City, Sunset, Dawn, Forest, and None.
+*   Annotation Engine:
+    - Click-to-place pin system.
+    - Unique ID tracking for each pin.
+    - Title and Description support for each point of interest on the 3D mesh.
+*   Settings Persistence: Saves the current view state (background color, model URL, etc.) to MongoDB so it persists across refreshes.
+*   Responsive Design: Optimized for both Desktop and Mobile viewing.
+
+3. TECH STACK
+-------------
+*   FRONTEND:
+    - React 19 (UI Library)
+    - Vite (Build Tool / Dev Server)
+    - Three.js (3D Engine)
+    - @react-three/fiber (React bridge for Three.js)
+    - @react-three/drei (High-level 3D component library)
+    - Tailwind CSS v4 (Styling)
+    - Framer Motion (Entrance & UI animations)
+    - Lucide React (Vector icons)
+    - Axios (HTTP Requests)
+*   BACKEND:
+    - Node.js (Runtime)
+    - Express.js (Web Framework)
+    - Multer (File upload middleware)
+    - Mongoose (MongoDB object modeling)
+    - Dotenv (Environment variable management)
+*   DATABASE:
+    - MongoDB Atlas (Cloud Database)
+
+4. HOSTING & DEPLOYMENT
+-----------------------
+*   FRONTEND HOSTING: Vercel
+    - Domain: https://3-d-veiwer-hy6m.vercel.app
+    - Handles static assets and React routing.
+*   BACKEND HOSTING: Render
+    - Domain: https://threed-veiwer.onrender.com
+    - Handles API requests, MongoDB connections, and file storage for uploads.
+*   DATABASE HOSTING: MongoDB Atlas
+    - Provides a global, managed NoSQL database cluster.
+
+5. KEY CONFIGURATIONS
+---------------------
+*   CORS Strategy: Restrictive allowedOrigins list including Vercel domain to prevent unauthorized API access.
+*   Absolute Indexing: Fixed the production "Unexpected Token <" error by ensuring all model URLs are prefixed with the backend's absolute URL (API_BASE_URL) instead of relative paths.
+*   Auto-Save: 800ms debounce timer in the settings hook to prevent DB flooding during rapid color changes.
+
+CREATED BY: Priyanshu Kumar
+DATE: February 20, 2026
