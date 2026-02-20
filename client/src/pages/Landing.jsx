@@ -3,7 +3,7 @@ import { useCallback, useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUpload } from '../hooks/useUpload';
 import { useSettings } from '../hooks/useSettings';
-import { fetchUploads } from '../lib/api';
+import { fetchUploads, API_BASE_URL } from '../lib/api';
 
 /* ── Sub-components ─────────────────────── */
 import Navbar from '../components/landing/Navbar';
@@ -36,9 +36,10 @@ export default function Landing() {
     const data = await upload(file);
     setUploadAnim(false);
     if (data) {
-      updateSettings({ modelUrl: data.url, modelName: data.originalName });
+      const fullUrl = data.url.startsWith('http') ? data.url : `${API_BASE_URL}${data.url}`;
+      updateSettings({ modelUrl: fullUrl, modelName: data.originalName });
       navigate('/viewer', {
-        state: { modelUrl: data.url, modelName: data.originalName, fileSize: data.fileSize },
+        state: { modelUrl: fullUrl, modelName: data.originalName, fileSize: data.fileSize },
       });
     }
   }, [upload, updateSettings, navigate, clearError]);
@@ -57,8 +58,7 @@ export default function Landing() {
   }, [handleFileSelect]);
 
   const handleModelClick = (model) => {
-    const API = import.meta.env.VITE_API_URL || '';
-    const url = `${API}${model.filePath}`;
+    const url = model.filePath.startsWith('http') ? model.filePath : `${API_BASE_URL}${model.filePath}`;
     updateSettings({ modelUrl: url, modelName: model.originalName });
     navigate('/viewer', {
       state: { modelUrl: url, modelName: model.originalName, fileSize: model.fileSize },

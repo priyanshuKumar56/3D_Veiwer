@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { saveSettings, fetchSettings } from '../lib/api';
+import { saveSettings, fetchSettings, API_BASE_URL } from '../lib/api';
 
 export function useSettings() {
   const [settings, setSettings] = useState({
@@ -24,10 +24,15 @@ export function useSettings() {
     try {
       const data = await fetchSettings();
       if (data.success) {
+        const rawModelUrl = data.modelUrl || '';
+        const modelUrl = (rawModelUrl && !rawModelUrl.startsWith('http')) 
+          ? `${API_BASE_URL}${rawModelUrl}` 
+          : rawModelUrl;
+
         setSettings({
           backgroundColor: data.backgroundColor || '#0a0a0f',
           wireframe: data.wireframe || false,
-          modelUrl: data.modelUrl || '',
+          modelUrl,
           modelName: data.modelName || '',
           lightColor: data.lightColor || '#ffffff',
         });

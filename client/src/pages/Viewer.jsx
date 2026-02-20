@@ -6,6 +6,7 @@ import ControlPanel from '../components/ControlPanel';
 import Toast from '../components/Toast';
 import { useSettings } from '../hooks/useSettings';
 import { useUpload } from '../hooks/useUpload';
+import { API_BASE_URL } from '../lib/api';
 
 /* ── Material texture presets ──────────── */
 const MATERIAL_PRESETS = [
@@ -93,7 +94,7 @@ export default function ViewerPage() {
     clearError();
     const data = await upload(file);
     if (data) {
-      const url = data.url;
+      const url = data.url.startsWith('http') ? data.url : `${API_BASE_URL}${data.url}`;
       setModelUrl(url);
       setModelName(data.originalName);
       setModelSize(data.fileSize);
@@ -112,8 +113,7 @@ export default function ViewerPage() {
 
   // Handle selecting a recent model from the list
   const handleSelectModel = useCallback((model) => {
-    const API = import.meta.env.VITE_API_URL || '';
-    const url = `${API}${model.filePath}`;
+    const url = model.filePath.startsWith('http') ? model.filePath : `${API_BASE_URL}${model.filePath}`;
     setModelUrl(url);
     setModelName(model.originalName);
     setModelSize(model.fileSize);

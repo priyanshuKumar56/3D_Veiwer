@@ -1,11 +1,10 @@
 import axios from 'axios';
 
-// In production, VITE_API_URL points to the Render backend.
-// In development, Vite proxy forwards /api to localhost:5000.
-const API_URL = (import.meta.env.VITE_API_URL || 'https://threed-veiwer.onrender.com').replace(/\/$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://threed-veiwer.onrender.com').replace(/\/$/, '');
+export { API_BASE_URL };
 
 const api = axios.create({
-  baseURL: `${API_URL}/api`,
+  baseURL: `${API_BASE_URL}/api`,
   timeout: 120000, // 2 minutes
 });
 
