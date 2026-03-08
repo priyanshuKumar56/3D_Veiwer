@@ -15,7 +15,7 @@ export default function Model({
   onSizeCalculated,
   controlsRef,
   onControlsReady,
-  onClick, // We'll use this prop for onPointerDown too
+  onClick, 
 }) {
   const { scene } = useGLTF(url);
   const groupRef = useRef();
